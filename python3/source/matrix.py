@@ -49,11 +49,11 @@ class Matrix:
 
     def __sub__(self, other):
         if type(other) == Matrix:
-            pass
+            return Matrix(self.matrixSub(other))
 
     def __rsub__(self, other):
         if type(other) == Matrix:
-            pass
+            return Matrix(self.matrixSub(other))
 
     def __mul__(self, other):
         if type(other) == Matrix:
@@ -75,7 +75,7 @@ class Matrix:
         if type(x) != int and type(x) != float:
             raise TypeError('The value of x must be either int or float.')
         return_matrix = []
-        if self.size['horizontal'] == None:
+        if self.size['type'] == 'vector':
             for m_i in self.matrix:
                 return_matrix.append(x * m_i)
             return return_matrix
@@ -102,15 +102,38 @@ class Matrix:
 
     def matrixAdd(self, other):
         if self.size == other.size:
-            M_out = []
-            for i in range(self.size['vertical']):
-                m_i = []
-                for j in range(self.size['horizontal']):
-                    m_i.append(self.matrix[i][j] + other.matrix[i][j])
-                M_out.append(m_i)
-            return M_out
-        raise ValueError('The size of both matrix must match.')
+            if self.size['type'] == 'matrix':
+                M_out = []
+                for i in range(self.size['vertical']):
+                    m_i = []
+                    for j in range(self.size['horizontal']):
+                        m_i.append(self.matrix[i][j] + other.matrix[i][j])
+                    M_out.append(m_i)
+                return M_out
+            else:
+                M_out = []
+                for i in range(len(self.matrix)):
+                    M_out.append(self.matrix[i] + other.matrix[i])
+                return M_out
+        raise ValueError('The size of both matrix/vector must match.')
 
+    def matrixSub(self, other):
+        if self.size == other.size:
+            if self.size['type'] == 'matrix':
+                M_out = []
+                for i in range(self.size['vertical']):
+                    m_i = []
+                    for j in range(self.size['horizontal']):
+                        m_i.append(self.matrix[i][j] - other.matrix[i][j])
+                    M_out.append(m_i)
+                return M_out
+            else:
+                M_out = []
+                for i in range(len(self.matrix)):
+                    M_out.append(self.matrix[i] - other.matrix[i])
+                return M_out
+        raise ValueError('The size of both matrix/vector must match.')
+    
     def matrixMul(self, other):
         if self.size['type'] == 'matrix' and other.size['type'] == 'matrix':
             if self.size['horizontal'] == other.size['vertical']:
@@ -124,14 +147,14 @@ class Matrix:
             raise ValueError('The horizontal length of the first matrix and the vertical length of second matrix must match')
         elif self.size['type'] == 'vector' and other.size['type'] == 'vector':
             M_out = []
-            if self.size['vertical'] > 0 and other.size['horizontal'] > 0:
+            if self.size['vertical'] != None and other.size['horizontal'] != None:
                 for i in range(self.size['vertical']):
                     m_i = []
                     for j in range(other.size['horizontal']):
                         m_i.append(self.matrix[i] * other.matrix[j])
                     M_out.append(m_i)
                 return M_out
-            elif self.size['horizontal'] > 0 and other.size['vertical'] > 0:
+            elif self.size['horizontal'] != None and other.size['vertical'] != None:
                 if self.size['horizontal'] == other.size['vertical']:
                     M_out.append(sum([a_i * b_j for a_i, b_j in zip(self.matrix, other.matrix)]))
                     return M_out
