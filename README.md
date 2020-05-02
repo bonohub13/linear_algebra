@@ -10,3 +10,5 @@
 ## ::::: UPDATES :::::
 - May 1, 2020
 	- added README.md and Python version of matrix package
+- May 2, 2020
+	- partially added matrix and vector multiplication for matrix.py
