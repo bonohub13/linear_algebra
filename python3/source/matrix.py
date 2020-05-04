@@ -22,6 +22,7 @@ class Matrix:
             self.matrix = init_matrix[0]
         
         self.T = self.transpose
+        self.det = self.determinate
 
     def __repr__(self):
         return "Matrix({})".format(self.init_matrix)
@@ -82,16 +83,20 @@ class Matrix:
     def get_init_matrix(self, init_matrix: list):
         return init_matrix
 
-    def scala(self, x):
+    def scala(self, x, matrix=None):
         if type(x) != int and type(x) != float:
             raise TypeError('The value of x must be either int or float.')
         return_matrix = []
+        if matrix == None:
+            tmp_matrix = self.matrix
+        else:
+            tmp_matrix = matrix
         if self.size['type'] == 'vector':
-            for m_i in self.matrix:
+            for m_i in tmp_matrix:
                 return_matrix.append(x * m_i)
             return return_matrix
         else:
-            for m_i in self.matrix:
+            for m_i in tmp_matrix:
                 ret_m_i = []
                 for m_j in m_i:
                     ret_m_i.append(x * m_j)
@@ -100,14 +105,15 @@ class Matrix:
     
     def transpose(self): #transpose
         if self.size['type'] == 'matrix':
+            hor, ver = self.__len__()
             tmp_matrix = []
-            for j in range(self.size['horizontal']):
-                tmpM_i = []
-                for i in range(self.size['vertical']):
-                    tmpM_i.append(self.matrix[i][j])
-                tmp_matrix.append(tmpM_i)
+            for i in range(hor):
+                tmp_M_i = []
+                for j in range(ver):
+                    tmp_M_i.append(self.matrix[j][i])
+                tmp_matrix.append(tmp_M_i)
             self.size = {'horizontal':len(tmp_matrix[0]), 'vertical':len(tmp_matrix), 'type':'matrix'}
-            self.matrix = tmp_matrix
+            self.matrix = tmp_matrix[:]
         elif self.size['type'] == 'vector':
             self.size = {'horizontal':self.size['vertical'], 'vertical':self.size['horizontal'], 'type':'vector'}
 
@@ -173,8 +179,6 @@ class Matrix:
                     M_out.append(sum([A_i * B_i for A_i, B_i in zip(self.matrix, other.matrix[i])]))
                 self.size = {'horizontal':len(M_out), 'vertical':None, 'type':'vector'}
                 return M_out
-            else:
-                raise TypeError('The horizontal length and vertical length of vector must match')
         elif self.size['type'] == 'vector' and other.size['type'] == 'vector':
             M_out = []
             if self.size['vertical'] != None and other.size['horizontal'] != None:
@@ -194,3 +198,55 @@ class Matrix:
                     raise ValueError('When calculating "horizontal vector" * "vertical vector", the size of two vectors must match')
             else:
                 raise TypeError('Vector calculation must be either of \"horizontal vector\" * \"vertical vector\" or \"vertical vector\" * \"horizontal vector\"')
+    def matrixDiv(self, other):
+        pass
+
+    def determinate(self):
+        if self.size['type'] == 'vector':
+            raise TypeError('A determinate cannot be caluculated from a vector')
+        elif self.__len__()[0] == self.__len__()[1]:
+            hor, ver = self.__len__()
+            def det2d(matrix:list):
+                return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+            def det3d(matrix:list):
+                tmp_det = []
+                for i in range(len(matrix)):
+                    tmp_matrix = []
+                    n = 0
+                    while len(tmp_matrix) < 2:
+                        if n != i:
+                            tmp_matrix.append(matrix[n][-2:])
+                        n += 1
+                    if i%2 == 0:
+                        tmp_det.append(det2d(tmp_matrix))
+                    else:
+                        tmp_det.append(-1 * det2d(tmp_matrix))
+                return sum(tmp_det)
+            def det4d(matrix:list):
+                tmp_det = []
+                for i in range(len(matrix)):
+                    tmp_matrix = []
+                    n = 0
+                    while len(tmp_matrix) < 3:
+                        if n != i:
+                            tmp_matrix.append(matrix[n][-3:])
+                        n += 1
+                    if i%2 == 0:
+                        tmp_det.append(det3d(tmp_matrix))
+                    else:
+                        tmp_det.append(-1 * det3d(tmp_matrix))
+                return sum(tmp_det)
+            if ver == 2:
+                tmp_M = self.matrix[:]
+                return det2d(tmp_M)
+            if ver == 3:
+                tmp_M = self.matrix[:]
+                return det3d(tmp_M)
+            if ver == 4:
+                tmp_matrix = self.matrix[:]
+                return det4d(tmp_matrix)
+        else:
+            raise ValueError('The horizontal size and vertical size of the matrix must match')
+
+    def matrixRev(self):
+        pass
