@@ -173,6 +173,8 @@ class Matrix:
                     M_out.append(sum([A_i * B_i for A_i, B_i in zip(self.matrix, other.matrix[i])]))
                 self.size = {'horizontal':len(M_out), 'vertical':None, 'type':'vector'}
                 return M_out
+            else:
+                raise TypeError('The horizontal length and vertical length of vector must match')
         elif self.size['type'] == 'vector' and other.size['type'] == 'vector':
             M_out = []
             if self.size['vertical'] != None and other.size['horizontal'] != None:
