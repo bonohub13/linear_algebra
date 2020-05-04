@@ -13,3 +13,6 @@
 - May 2, 2020
 	- partially added matrix and vector multiplication for matrix.py
 	- added substraction for matrix and addition and substraction for vector
+- May 4, 2020
+	- added full emplementation of addition, subtraction, and multiplication of vector/matrix
+	- added \_\_len\_\_() dunder method for Matrix()

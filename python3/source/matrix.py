@@ -17,6 +17,9 @@ class Matrix:
         elif len(init_matrix) > 1:
             self.size = {'horizontal':None, 'vertical':len(init_matrix), 'type':'vector'}
             self.matrix = init_matrix
+
+        else:
+            self.matrix = init_matrix[0]
         
         self.T = self.transpose
 
@@ -39,6 +42,9 @@ class Matrix:
         
         return output_str
 
+    def __len__(self):
+        return (self.size['horizontal'], self.size['vertical'])
+
     def __add__(self, other):
         if type(other) == Matrix:
             return Matrix(self.matrixAdd(other))
@@ -57,14 +63,19 @@ class Matrix:
 
     def __mul__(self, other):
         if type(other) == Matrix:
-            return Matrix(self.matrixMul(other))
+            matrix = Matrix(self.matrixMul(other))
+            if self.size['type'] == 'matrix' or self.size['type'] == 'vector':
+                matrix.size = self.size
+            return matrix
         else:
             return Matrix(self.scala(other))
 
     def __rmul__(self, other):
         if type(other) == Matrix:
-            matrix = self.matrix
-            return Matrix(other.matrixMul(matrix))
+            matrix = Matrix(self.matrixMul(other))
+            if self.size['type'] == 'matrix' or self.size['type'] == 'vector':
+                matrix.size = self.size
+            return matrix
         else:
             return Matrix(self.scala(other))
 
@@ -143,8 +154,25 @@ class Matrix:
                     for j in range(other.size['horizontal']):
                         m_i.append(sum([self.matrix[i][k] * other.matrix[k][j] for k in range(self.size['horizontal'])]))
                     M_out.append(m_i)
+                self.size = {'horizontal':len(M_out[0]), 'vertical':len(M_out), 'type':'matrix'}
                 return M_out
             raise ValueError('The horizontal length of the first matrix and the vertical length of second matrix must match')
+        elif self.size['type'] == 'matrix' and other.size['type'] == 'vector':
+            M_out = []
+            if self.size['horizontal'] == other.size['vertical']:
+                for i in range(self.size['vertical']):
+                    M_out.append(sum([A_i * B_i for A_i, B_i in zip(self.matrix[i], other.matrix)]))
+                self.size = {'horizontal':None, 'vertical':len(M_out), 'type':'vector'}
+                return M_out
+            else:
+                raise TypeError('The horizontal length and vertical length of vector must match')
+        elif self.size['type'] == 'vector' and other.size['type'] == 'matrix':
+            M_out = []
+            if self.size['horizontal'] == other.size['vertical']:
+                for i in range(other.size['horizontal']):
+                    M_out.append(sum([A_i * B_i for A_i, B_i in zip(self.matrix, other.matrix[i])]))
+                self.size = {'horizontal':len(M_out), 'vertical':None, 'type':'vector'}
+                return M_out
         elif self.size['type'] == 'vector' and other.size['type'] == 'vector':
             M_out = []
             if self.size['vertical'] != None and other.size['horizontal'] != None:
@@ -153,10 +181,14 @@ class Matrix:
                     for j in range(other.size['horizontal']):
                         m_i.append(self.matrix[i] * other.matrix[j])
                     M_out.append(m_i)
+                self.size = {'horizontal':len(M_out[0]), 'vertical':len(M_out), 'type':'matrix'}
                 return M_out
             elif self.size['horizontal'] != None and other.size['vertical'] != None:
                 if self.size['horizontal'] == other.size['vertical']:
                     M_out.append(sum([a_i * b_j for a_i, b_j in zip(self.matrix, other.matrix)]))
+                    self.size = {'type':type(M_out[0])}
                     return M_out
                 else:
                     raise ValueError('When calculating "horizontal vector" * "vertical vector", the size of two vectors must match')
+            else:
+                raise TypeError('Vector calculation must be either of \"horizontal vector\" * \"vertical vector\" or \"vertical vector\" * \"horizontal vector\"')
