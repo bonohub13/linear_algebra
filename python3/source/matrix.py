@@ -248,8 +248,8 @@ class Matrix:
                 tmp_M = self.matrix[:]
                 return det3d(tmp_M)
             if ver == 4:
-                tmp_matrix = self.matrix[:]
-                return det4d(tmp_matrix)
+                tmp_M = self.matrix[:]
+                return det4d(tmp_M)
         else:
             raise ValueError('The horizontal size and vertical size of the matrix must match')
 
