@@ -17,3 +17,5 @@
 	- added full emplementation of addition, subtraction, and multiplication of vector/matrix
 	- added \_\_len\_\_() dunder method for Matrix()
 	- added a function to find the determinate of a square matrix (covers matrix size up to 4x4)
+- May 9, 2020
+	- added Gaussian Elimination Method for matrix.py

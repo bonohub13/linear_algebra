@@ -4,20 +4,17 @@ class Matrix:
     def __init__(self, init_matrix: list=[]):
         # initializer for making a new matrix
         self.init_matrix = self.get_init_matrix(init_matrix)
-        if init_matrix != [] and len(init_matrix) > 1 and type(init_matrix[0]) == list:
-            len_check = 0
-            for i in range(len(init_matrix) - 1):
-                if init_matrix[i].__len__() != init_matrix[i+1].__len__():
-                    len_check += 1
-            if len_check == 0:
+        if type(init_matrix[0]) == list:
+            ver_len = len(init_matrix[0])
+            hor_len_check = [len(hor_vector) == ver_len for hor_vector in init_matrix[1:]]
+            if False not in hor_len_check:
                 self.size = {'horizontal':len(init_matrix[0]), 'vertical':len(init_matrix), 'type':'matrix'}
-                self.matrix = init_matrix
+                self.matrix = [[float(x) for x in init_matrix[i]] for i in range(len(init_matrix))]
             else:
-                raise ValueError('The size for the argument \"init_matrix\" does not match. The size of the matrix must be the same.')
+                raise ValueError('The horizontal length for \"init_matrix\" does not match!')
         elif len(init_matrix) > 1:
             self.size = {'horizontal':None, 'vertical':len(init_matrix), 'type':'vector'}
             self.matrix = init_matrix
-
         else:
             self.matrix = init_matrix[0]
         
@@ -44,7 +41,14 @@ class Matrix:
         return output_str
 
     def __len__(self):
-        return (self.size['horizontal'], self.size['vertical'])
+        length = (self.size['horizontal'], self.size['vertical'])
+        if self.size['type'] == 'vector':
+            if length[0] == None:
+                return length[1]
+            else:
+                return length[0]
+        else:
+            raise TypeError('Cannot return value for len() for matrix, only vector is possible. Please access Matrix().size for size of matrix.')
 
     def __add__(self, other):
         if type(other) == Matrix:
@@ -105,7 +109,7 @@ class Matrix:
     
     def transpose(self): #transpose
         if self.size['type'] == 'matrix':
-            hor, ver = self.__len__()
+            hor, ver = self.size['horizontal'], self.size['vertical']
             tmp_matrix = []
             for i in range(hor):
                 tmp_M_i = []
@@ -198,14 +202,15 @@ class Matrix:
                     raise ValueError('When calculating "horizontal vector" * "vertical vector", the size of two vectors must match')
             else:
                 raise TypeError('Vector calculation must be either of \"horizontal vector\" * \"vertical vector\" or \"vertical vector\" * \"horizontal vector\"')
+
     def matrixDiv(self, other):
-        pass
+            pass
 
     def determinate(self):
+        hor, ver = self.size['horizontal'], self.size['vertical']
         if self.size['type'] == 'vector':
             raise TypeError('A determinate cannot be caluculated from a vector')
-        elif self.__len__()[0] == self.__len__()[1]:
-            hor, ver = self.__len__()
+        elif hor == ver:
             def det2d(matrix:list):
                 return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
             def det3d(matrix:list):
@@ -250,3 +255,38 @@ class Matrix:
 
     def matrixRev(self):
         pass
+
+    def GaussianEliminiation(self):
+        if self.size['type'] == 'vector':
+            raise TypeError('Cannot execute Gaussian Elimination with vector!')
+        elif self.size['horizontal'] is not (self.size['vertical'] + 1):
+            raise ValueError('The size of matrix must be ({}, {}) in order to execute Gaussian Elimination.')
+        
+        tmp_matrix = [Matrix(hor_vector) for hor_vector in self.matrix]
+        for M in tmp_matrix:
+            M.T()
+
+        def elimination(loopTimes: int):
+            outer_layer = int(self.size['vertical'] - (loopTimes + 1))
+            for i in range(loopTimes):
+                if tmp_matrix[i+1].matrix[loopTimes] is not 0:
+                    tmp_matrix[i+1] = Matrix(tmp_matrix[i+1].scala(tmp_matrix[outer_layer].matrix[outer_layer]/tmp_matrix[i+1].matrix[outer_layer]))
+                    tmp_matrix[i+1].T()
+                    tmp_matrix[i+1] = tmp_matrix[outer_layer] - tmp_matrix[i+1]
+
+        counter = 1
+        while counter < self.size['vertical']:
+            elimination(self.size['vertical'] - counter)
+            counter += 1
+
+        output_x = [0 for i in range(len(tmp_matrix))]
+
+        for i in range(self.size['vertical']):
+            if i == 0:
+                output_x[-1] = tmp_matrix[-1].matrix[-1]/tmp_matrix[-1].matrix[-2]
+            else:
+                for j in range(i):
+                    tmp_matrix[-i-1].matrix[-j-2] = tmp_matrix[-i-1].matrix[-j-2] * output_x[-j-1]
+                output_x[-i+1] = (tmp_matrix[-i-1].matrix[-1] - sum(tmp_matrix[-i-1].matrix[-i-1:-1]))/tmp_matrix[-i-1].matrix[-i-2]
+        
+        return output_x
