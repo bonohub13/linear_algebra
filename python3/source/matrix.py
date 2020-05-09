@@ -248,8 +248,8 @@ class Matrix:
                 tmp_M = self.matrix[:]
                 return det3d(tmp_M)
             if ver == 4:
-                tmp_M = self.matrix[:]
-                return det4d(tmp_M)
+                tmp_matrix = self.matrix[:]
+                return det4d(tmp_matrix)
         else:
             raise ValueError('The horizontal size and vertical size of the matrix must match')
 
@@ -260,7 +260,7 @@ class Matrix:
         if self.size['type'] == 'vector':
             raise TypeError('Cannot execute Gaussian Elimination with vector!')
         elif self.size['horizontal'] is not (self.size['vertical'] + 1):
-            raise ValueError('The size of matrix must be ({}, {}) in order to execute Gaussian Elimination.')
+            raise ValueError('The size of matrix must be ({}, {}) in order to execute Gaussian Elimination.'.format(self.size['vertical']+1, self.size['vertical']))
         
         tmp_matrix = [Matrix(hor_vector) for hor_vector in self.matrix]
         for M in tmp_matrix:
