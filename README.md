@@ -19,3 +19,5 @@
 	- added a function to find the determinate of a square matrix (covers matrix size up to 4x4)
 - May 9, 2020
 	- added Gaussian Elimination Method for matrix.py
+- May 12, 2020
+	- Implemented a method to output inverted matrices

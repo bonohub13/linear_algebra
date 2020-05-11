@@ -269,7 +269,7 @@ class Matrix:
         def elimination(loopTimes: int):
             outer_layer = int(self.size['vertical'] - (loopTimes + 1))
             for i in range(loopTimes):
-                if tmp_matrix[i+1].matrix[loopTimes] is not 0:
+                if tmp_matrix[i+1].matrix[outer_layer] is not 0:
                     tmp_matrix[i+1] = Matrix(tmp_matrix[i+1].scala(tmp_matrix[outer_layer].matrix[outer_layer]/tmp_matrix[i+1].matrix[outer_layer]))
                     tmp_matrix[i+1].T()
                     tmp_matrix[i+1] = tmp_matrix[outer_layer] - tmp_matrix[i+1]
@@ -290,3 +290,56 @@ class Matrix:
                 output_x[-i+1] = (tmp_matrix[-i-1].matrix[-1] - sum(tmp_matrix[-i-1].matrix[-i-1:-1]))/tmp_matrix[-i-1].matrix[-i-2]
         
         return output_x
+
+    def InverseMatrix(self):
+        if self.size['horizontal'] is not self.size['vertical']:
+            raise TypeError('The matrix must be square to inverse.')
+        det = self.det()
+        tmp_matrix = self.matrix[:]
+        identity_matrix = []
+        for y in range(self.size['vertical']):
+            identity_matrix.append([])
+            for x in range(self.size['horizontal']):
+                if y == x:
+                    tmp_matrix[y].append(1.0)
+                    identity_matrix[y].append(1.0)
+                else:
+                    tmp_matrix[y].append(0.0)
+                    identity_matrix[y].append(0.0)
+
+        tmp_matrix = [Matrix(hor_vector) for hor_vector in tmp_matrix]
+
+        for hor_vector in tmp_matrix:
+            if hor_vector.size['vertical'] == None:
+                hor_vector.T()
+
+        def GaussSeidelElimination(loop_times: int, start: int=0):
+            outer_layer = start%self.size['vertical']
+            for y in range(loop_times):
+                if tmp_matrix[outer_layer].matrix[outer_layer] != 0.0 and y != outer_layer:
+                    if tmp_matrix[y].size['vertical'] == None:
+                        tmp_matrix[y].T()
+                    tmp_matrix[y] = Matrix(tmp_matrix[outer_layer].scala(tmp_matrix[y].matrix[outer_layer]/tmp_matrix[outer_layer].matrix[outer_layer])) - tmp_matrix[y]
+
+        for counter in range(self.size['vertical']):
+            GaussSeidelElimination(self.size['vertical'], start=counter)
+            print('{}\n'.format(tmp_matrix[counter]) + '-'*20 + '\n')
+
+        for i in range(len(tmp_matrix)):
+            if tmp_matrix[i].matrix[i] != 0.0:
+                if tmp_matrix[i].matrix[i] < 0:
+                    tmp_matrix[i] = tmp_matrix[i].scala(-1/abs(tmp_matrix[i].matrix[i]))
+                else:
+                    tmp_matrix[i] = tmp_matrix[i].scala(1/tmp_matrix[i].matrix[i])
+            else:
+                tmp_matrix[i] = tmp_matrix[i].matrix
+
+        check = [tmp_matrix[i][:self.size['vertical']] == identity_matrix[i] for i in range(self.size['vertical'])]
+        if False in check:
+            for i in range(self.size['vertical']):
+                print('{}'.format(tmp_matrix[i]))
+            print('Failed to Inverse matrix.')
+        else:
+            print(Matrix(tmp_matrix))
+            tmp_matrix = Matrix([M[(self.size['vertical']-1):] for M in tmp_matrix])
+            return tmp_matrix
