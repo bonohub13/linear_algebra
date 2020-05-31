@@ -69,7 +69,9 @@ class Matrix:
     def __mul__(self, other):
         if type(other) == Matrix:
             matrix = Matrix(self.matrixMul(other))
-            if self.size['type'] == 'matrix' or self.size['type'] == 'vector':
+            if type(matrix.matrix) == float or type(matrix.matrix) == int:
+                return matrix.matrix
+            elif self.size['type'] == 'matrix' or self.size['type'] == 'vector':
                 matrix.size = self.size
             return matrix
         else:
@@ -78,7 +80,9 @@ class Matrix:
     def __rmul__(self, other):
         if type(other) == Matrix:
             matrix = Matrix(self.matrixMul(other))
-            if self.size['type'] == 'matrix' or self.size['type'] == 'vector':
+            if type(matrix.matrix) == float or type(matrix.matrix) == int:
+                return matrix.matrix
+            elif self.size['type'] == 'matrix' or self.size['type'] == 'vector':
                 matrix.size = self.size
             return matrix
         else:
@@ -97,13 +101,13 @@ class Matrix:
             tmp_matrix = matrix
         if self.size['type'] == 'vector':
             for m_i in tmp_matrix:
-                return_matrix.append(x * m_i)
+                return_matrix.append(round(x * m_i, 3))
             return return_matrix
         else:
             for m_i in tmp_matrix:
                 ret_m_i = []
                 for m_j in m_i:
-                    ret_m_i.append(x * m_j)
+                    ret_m_i.append(round(x * m_j, 3))
                 return_matrix.append(ret_m_i)
             return return_matrix
     
@@ -128,13 +132,13 @@ class Matrix:
                 for i in range(self.size['vertical']):
                     m_i = []
                     for j in range(self.size['horizontal']):
-                        m_i.append(self.matrix[i][j] + other.matrix[i][j])
+                        m_i.append(round(self.matrix[i][j] + other.matrix[i][j], 3))
                     M_out.append(m_i)
                 return M_out
             else:
                 M_out = []
                 for i in range(len(self.matrix)):
-                    M_out.append(self.matrix[i] + other.matrix[i])
+                    M_out.append(round(self.matrix[i] + other.matrix[i], 3))
                 return M_out
         raise ValueError('The size of both matrix/vector must match.')
 
@@ -145,13 +149,13 @@ class Matrix:
                 for i in range(self.size['vertical']):
                     m_i = []
                     for j in range(self.size['horizontal']):
-                        m_i.append(self.matrix[i][j] - other.matrix[i][j])
+                        m_i.append(round(self.matrix[i][j] - other.matrix[i][j], 3))
                     M_out.append(m_i)
                 return M_out
             else:
                 M_out = []
                 for i in range(len(self.matrix)):
-                    M_out.append(self.matrix[i] - other.matrix[i])
+                    M_out.append(round(self.matrix[i] - other.matrix[i], 3))
                 return M_out
         raise ValueError('The size of both matrix/vector must match.')
     
@@ -162,7 +166,7 @@ class Matrix:
                 for i in range(self.size['vertical']):
                     m_i = []
                     for j in range(other.size['horizontal']):
-                        m_i.append(sum([self.matrix[i][k] * other.matrix[k][j] for k in range(self.size['horizontal'])]))
+                        m_i.append(round(sum([self.matrix[i][k] * other.matrix[k][j] for k in range(self.size['horizontal'])]), 3))
                     M_out.append(m_i)
                 self.size = {'horizontal':len(M_out[0]), 'vertical':len(M_out), 'type':'matrix'}
                 return M_out
@@ -171,7 +175,7 @@ class Matrix:
             M_out = []
             if self.size['horizontal'] == other.size['vertical']:
                 for i in range(self.size['vertical']):
-                    M_out.append(sum([A_i * B_i for A_i, B_i in zip(self.matrix[i], other.matrix)]))
+                    M_out.append(round(sum([A_i * B_i for A_i, B_i in zip(self.matrix[i], other.matrix)]), 3))
                 self.size = {'horizontal':None, 'vertical':len(M_out), 'type':'vector'}
                 return M_out
             else:
@@ -180,7 +184,7 @@ class Matrix:
             M_out = []
             if self.size['horizontal'] == other.size['vertical']:
                 for i in range(other.size['horizontal']):
-                    M_out.append(sum([A_i * B_i for A_i, B_i in zip(self.matrix, other.matrix[i])]))
+                    M_out.append(round(sum([A_i * B_i for A_i, B_i in zip(self.matrix, other.matrix[i])]), 3))
                 self.size = {'horizontal':len(M_out), 'vertical':None, 'type':'vector'}
                 return M_out
         elif self.size['type'] == 'vector' and other.size['type'] == 'vector':
@@ -189,13 +193,13 @@ class Matrix:
                 for i in range(self.size['vertical']):
                     m_i = []
                     for j in range(other.size['horizontal']):
-                        m_i.append(self.matrix[i] * other.matrix[j])
+                        m_i.append(round(self.matrix[i] * other.matrix[j]))
                     M_out.append(m_i)
                 self.size = {'horizontal':len(M_out[0]), 'vertical':len(M_out), 'type':'matrix'}
                 return M_out
             elif self.size['horizontal'] != None and other.size['vertical'] != None:
                 if self.size['horizontal'] == other.size['vertical']:
-                    M_out.append(sum([a_i * b_j for a_i, b_j in zip(self.matrix, other.matrix)]))
+                    M_out.append(round(sum([a_i * b_j for a_i, b_j in zip(self.matrix, other.matrix)]), 3))
                     self.size = {'type':type(M_out[0])}
                     return M_out
                 else:

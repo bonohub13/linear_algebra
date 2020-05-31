@@ -21,3 +21,5 @@
 	- added Gaussian Elimination Method for matrix.py
 - May 12, 2020
 	- Implemented a method to output inverted matrices
+- May 31, 2020
+	- added a documentation to explain the mathmatical algorithms for the fundamentals of linear algebra (linear\_algebra.ipynb)
