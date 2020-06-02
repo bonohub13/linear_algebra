@@ -23,3 +23,5 @@
 	- Implemented a method to output inverted matrices
 - May 31, 2020
 	- added a documentation to explain the mathmatical algorithms for the fundamentals of linear algebra (linear\_algebra.ipynb)
+- Jun 2, 2020
+	- added methods to matrix.py and documentation to linear\_algebra.ipynb

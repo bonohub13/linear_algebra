@@ -19,7 +19,8 @@ class Matrix:
             self.matrix = init_matrix[0]
         
         self.T = self.transpose
-        self.det = self.determinate
+        self.det = self.determinant
+        self.inv = self.InverseMatrix
 
     def __repr__(self):
         return "Matrix({})".format(self.init_matrix)
@@ -52,19 +53,31 @@ class Matrix:
 
     def __add__(self, other):
         if type(other) == Matrix:
-            return Matrix(self.matrixAdd(other))
+            tmp_matrix = Matrix(self.matrixAdd(other))
+            if tmp_matrix.size['type'] == 'vector' and tmp_matrix.size['horizontal'] != None:
+                tmp_matrix.T()
+            return tmp_matrix
 
     def __radd__(self, other):
         if type(other) == Matrix:
-            return Matrix(self.matrixAdd(other))
+            tmp_matrix = Matrix(self.matrixAdd(other))
+            if tmp_matrix.size['type'] == 'vector' and tmp_matrix.size['horizontal'] != None:
+                tmp_matrix.T()
+            return tmp_matrix
 
     def __sub__(self, other):
         if type(other) == Matrix:
-            return Matrix(self.matrixSub(other))
+            tmp_matrix = Matrix(self.matrixSub(other))
+            if tmp_matrix.size['type'] == 'vector' and tmp_matrix.size['horizontal'] != None:
+                tmp_matrix.T()
+            return tmp_matrix
 
     def __rsub__(self, other):
         if type(other) == Matrix:
-            return Matrix(self.matrixSub(other))
+            tmp_matrix = Matrix(self.matrixSub(other))
+            if tmp_matrix.size['type'] == 'vector' and tmp_matrix.size['horizontal'] != None:
+                tmp_matrix.T()
+            return tmp_matrix
 
     def __mul__(self, other):
         if type(other) == Matrix:
@@ -75,7 +88,10 @@ class Matrix:
                 matrix.size = self.size
             return matrix
         else:
-            return Matrix(self.scala(other))
+            tmp_matrix = Matrix(self.scala(other))
+            if tmp_matrix.size['type'] == 'vector' and tmp_matrix.size['horizontal'] != None:
+                tmp_matrix.T()
+            return tmp_matrix
 
     def __rmul__(self, other):
         if type(other) == Matrix:
@@ -86,7 +102,10 @@ class Matrix:
                 matrix.size = self.size
             return matrix
         else:
-            return Matrix(self.scala(other))
+            tmp_matrix = Matrix(self.scala(other))
+            if tmp_matrix.size['type'] == 'vector' and tmp_matrix.size['horizontal'] != None:
+                tmp_matrix.T()
+            return tmp_matrix
 
     def get_init_matrix(self, init_matrix: list):
         return init_matrix
@@ -207,58 +226,61 @@ class Matrix:
             else:
                 raise TypeError('Vector calculation must be either of \"horizontal vector\" * \"vertical vector\" or \"vertical vector\" * \"horizontal vector\"')
 
-    def matrixDiv(self, other):
-            pass
-
-    def determinate(self):
+    def determinant(self):
         hor, ver = self.size['horizontal'], self.size['vertical']
         if self.size['type'] == 'vector':
             raise TypeError('A determinate cannot be caluculated from a vector')
         elif hor == ver:
-            def det2d(matrix:list):
-                return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
-            def det3d(matrix:list):
-                tmp_det = []
-                for i in range(len(matrix)):
-                    tmp_matrix = []
-                    n = 0
-                    while len(tmp_matrix) < 2:
-                        if n != i:
-                            tmp_matrix.append(matrix[n][-2:])
-                        n += 1
-                    if i%2 == 0:
-                        tmp_det.append(det2d(tmp_matrix))
-                    else:
-                        tmp_det.append(-1 * det2d(tmp_matrix))
-                return sum(tmp_det)
-            def det4d(matrix:list):
-                tmp_det = []
-                for i in range(len(matrix)):
-                    tmp_matrix = []
-                    n = 0
-                    while len(tmp_matrix) < 3:
-                        if n != i:
-                            tmp_matrix.append(matrix[n][-3:])
-                        n += 1
-                    if i%2 == 0:
-                        tmp_det.append(det3d(tmp_matrix))
-                    else:
-                        tmp_det.append(-1 * det3d(tmp_matrix))
-                return sum(tmp_det)
-            if ver == 2:
-                tmp_M = self.matrix[:]
-                return det2d(tmp_M)
-            if ver == 3:
-                tmp_M = self.matrix[:]
-                return det3d(tmp_M)
-            if ver == 4:
-                tmp_matrix = self.matrix[:]
-                return det4d(tmp_matrix)
+            def det2d():
+                return self.matrix[0][0] * self.matrix[1][1] - self.matrix[0][1] * self.matrix[1][0]
+
+            def triangularMatrix():
+                det = 1.0
+                tmp_matrix = [Matrix(vector) for vector in self.matrix]
+                #switching rows if the diagonal line includes a 0
+                for diag in range(len(tmp_matrix)):
+                    if tmp_matrix[diag].matrix[diag] == 0.0:
+                        tmp_copy = tmp_matrix[:]
+                        for i in range(len(tmp_matrix)-1):
+                            if 0.0 not in tmp_matrix[i].matrix[:diag+1]:
+                                tmp_matrix[diag] = tmp_copy[i]
+                                tmp_matrix[i] = tmp_copy[diag]
+                                det = -1*det
+
+                #Checking if the matrix is already triangular
+                check = ['construct' if 0.0 not in tmp_matrix[check_range+1].matrix[:check_range+1] else 'pass' for check_range in range(len(tmp_matrix)-1)]
+                
+                if 'construct' in check:
+                    #construct triangular matrix out of original matrix
+                    for inner in range(len(tmp_matrix)-1):
+                        for outer in range(len(tmp_matrix)-1):
+                            if tmp_matrix[outer+1].matrix[inner] != 0.0 and (outer + 1) != inner:
+                                if tmp_matrix[inner].matrix[inner] != 0.0:
+                                    scalar = tmp_matrix[outer+1].matrix[inner]/tmp_matrix[inner].matrix[inner]
+                                    placeholder = inner
+                                else:
+                                    for tmp_outer in range(len(tmp_matrix)):
+                                        if tmp_outer != outer and tmp_matrix[tmp_outer].matrix[inner] != 0.0:
+                                            scalar = tmp_matrix[outer+1].matrix[inner]/tmp_matrix[tmp_outer].matrix[inner]
+                                            placeholder = tmp_outer
+                                            if tmp_outer < (len(tmp_matrix)-1):
+                                                break
+                                        
+                                tmp_matrix[outer+1] = tmp_matrix[outer+1] - scalar*tmp_matrix[placeholder]
+                
+                for diag in range(len(tmp_matrix)):
+                    det *= tmp_matrix[diag].matrix[diag]
+
+                tmp_matrix = Matrix([vector.matrix for vector in tmp_matrix])
+
+                return float(round(det, 4))
+
+            if len(self.matrix) == 2:
+                return det2d()
+            else:
+                return triangularMatrix()
         else:
             raise ValueError('The horizontal size and vertical size of the matrix must match')
-
-    def matrixRev(self):
-        pass
 
     def GaussianEliminiation(self):
         if self.size['type'] == 'vector':
@@ -267,15 +289,12 @@ class Matrix:
             raise ValueError('The size of matrix must be ({}, {}) in order to execute Gaussian Elimination.'.format(self.size['vertical']+1, self.size['vertical']))
         
         tmp_matrix = [Matrix(hor_vector) for hor_vector in self.matrix]
-        for M in tmp_matrix:
-            M.T()
 
         def elimination(loopTimes: int):
             outer_layer = int(self.size['vertical'] - (loopTimes + 1))
             for i in range(loopTimes):
                 if tmp_matrix[i+1].matrix[outer_layer] is not 0:
                     tmp_matrix[i+1] = Matrix(tmp_matrix[i+1].scala(tmp_matrix[outer_layer].matrix[outer_layer]/tmp_matrix[i+1].matrix[outer_layer]))
-                    tmp_matrix[i+1].T()
                     tmp_matrix[i+1] = tmp_matrix[outer_layer] - tmp_matrix[i+1]
 
         counter = 1
@@ -298,52 +317,70 @@ class Matrix:
     def InverseMatrix(self):
         if self.size['horizontal'] is not self.size['vertical']:
             raise TypeError('The matrix must be square to inverse.')
+
+        def GaussJordanElimination(matrix: list, identity_matrix: list):
+            #compute triangular matrix
+            for inner in range(len(matrix)-1):
+                for outer in range(len(matrix)-1):
+                    if matrix[outer+1].matrix[inner] != 0.0 and (outer+1) != inner:
+                        if matrix[inner].matrix[inner] != 0.0:
+                            scalar = matrix[outer+1].matrix[inner]/matrix[inner].matrix[inner]
+                            placeholder = inner
+                        else:
+                            for tmp_outer in range(len(matrix)):
+                                if tmp_outer != outer and matrix[tmp_outer].matrix[inner] != 0.0:
+                                    scalar = matrix[outer+1].matrix[inner]/matrix[tmp_outer].matrix[inner]
+                                    placeholder = tmp_outer
+                                    if tmp_outer < (len(matrix)-1):
+                                        break
+                        matrix[outer+1] = matrix[outer+1] - scalar*matrix[placeholder]
+                        identity_matrix[outer+1] = identity_matrix[outer+1] - scalar*identity_matrix[placeholder]
+
+            #make the value of the diagonal line into 1.0
+            for diag in range(len(matrix)-1):
+                if matrix[diag+1].matrix[diag+1] != 0.0:
+                    matrix[diag+1] = 1/matrix[diag+1].matrix[diag+1]*matrix[diag+1]
+                    identity_matrix[diag+1] = 1/matrix[diag+1].matrix[diag+1]*identity_matrix[diag+1]
+
+            #compute using the GaussJordanElimination method on triangular matrix to find the inverse matrix
+            for inner in range(len(matrix)-1):
+                for outer in range(len(matrix)):
+                    if matrix[outer].matrix[inner+1] != 0.0 and matrix[inner+1].matrix[inner+1] != 0.0 and inner+1 != outer:
+                        scalar = matrix[outer].matrix[inner+1]/matrix[inner+1].matrix[inner+1]
+                        matrix[outer] -= scalar*matrix[inner+1]
+                        identity_matrix[outer] -= scalar*identity_matrix[inner+1]
+                        
+            return matrix, identity_matrix
+
         det = self.det()
-        tmp_matrix = self.matrix[:]
-        identity_matrix = []
-        for y in range(self.size['vertical']):
-            identity_matrix.append([])
-            for x in range(self.size['horizontal']):
-                if y == x:
-                    tmp_matrix[y].append(1.0)
-                    identity_matrix[y].append(1.0)
-                else:
-                    tmp_matrix[y].append(0.0)
-                    identity_matrix[y].append(0.0)
+        if det != 0.0:
+            tmp_matrix = [Matrix(vector) for vector in self.matrix]
+            identity_matrix = [Matrix([1.0 if inner == outer else 0.0 for inner in range(len(tmp_matrix))]) for outer in range(len(tmp_matrix))]
+            idmatrix_cp = identity_matrix[:]
 
-        tmp_matrix = [Matrix(hor_vector) for hor_vector in tmp_matrix]
+            #formatting the matrices to make the value of the diagonal line not a 0
+            for diag in range(len(tmp_matrix)):
+                if tmp_matrix[diag].matrix[diag] == 0.0:
+                    tmp_copy = tmp_matrix[:]
+                    for i in range(len(tmp_matrix)-1):
+                        if 0.0 not in tmp_matrix[i].matrix[:diag+1]:
+                            tmp_matrix[diag] = tmp_copy[i]
+                            tmp_matrix[i] = tmp_copy[diag]
+                            identity_matrix[diag] = idmatrix_cp[i]
+                            identity_matrix[i] = idmatrix_cp[diag]
 
-        for hor_vector in tmp_matrix:
-            if hor_vector.size['vertical'] == None:
-                hor_vector.T()
+            tmp_matrix, identity_matrix = GaussJordanElimination(tmp_matrix, identity_matrix)
 
-        def GaussSeidelElimination(loop_times: int, start: int=0):
-            outer_layer = start%self.size['vertical']
-            for y in range(loop_times):
-                if tmp_matrix[outer_layer].matrix[outer_layer] != 0.0 and y != outer_layer:
-                    if tmp_matrix[y].size['vertical'] == None:
-                        tmp_matrix[y].T()
-                    tmp_matrix[y] = Matrix(tmp_matrix[outer_layer].scala(tmp_matrix[y].matrix[outer_layer]/tmp_matrix[outer_layer].matrix[outer_layer])) - tmp_matrix[y]
+            tmp_matrix = Matrix([vector.matrix for vector in tmp_matrix])
+            identity_matrix = Matrix([vector.matrix for vector in identity_matrix])
+            idmatrix_cp = Matrix([vector.matrix for vector in idmatrix_cp])
+            
+            if tmp_matrix.matrix == idmatrix_cp.matrix:
+                print('Successfully inverted matrix!')
+                return identity_matrix
 
-        for counter in range(self.size['vertical']):
-            GaussSeidelElimination(self.size['vertical'], start=counter)
-            print('{}\n'.format(tmp_matrix[counter]) + '-'*20 + '\n')
-
-        for i in range(len(tmp_matrix)):
-            if tmp_matrix[i].matrix[i] != 0.0:
-                if tmp_matrix[i].matrix[i] < 0:
-                    tmp_matrix[i] = tmp_matrix[i].scala(-1/abs(tmp_matrix[i].matrix[i]))
-                else:
-                    tmp_matrix[i] = tmp_matrix[i].scala(1/tmp_matrix[i].matrix[i])
             else:
-                tmp_matrix[i] = tmp_matrix[i].matrix
+                print('Failed to invert matrix') 
 
-        check = [tmp_matrix[i][:self.size['vertical']] == identity_matrix[i] for i in range(self.size['vertical'])]
-        if False in check:
-            for i in range(self.size['vertical']):
-                print('{}'.format(tmp_matrix[i]))
-            print('Failed to Inverse matrix.')
         else:
-            print(Matrix(tmp_matrix))
-            tmp_matrix = Matrix([M[(self.size['vertical']-1):] for M in tmp_matrix])
-            return tmp_matrix
+            print('This matrix does not have an inverse matrix.')
